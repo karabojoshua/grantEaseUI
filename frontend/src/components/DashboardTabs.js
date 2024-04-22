@@ -4,6 +4,7 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Box from '@mui/material/Box';
 import DashboardOverviewCards from './DashboardOverviewCards';
+import RoleChangeRequest from './DashboardRoleChangeReq';
 
 function CustomTabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -59,7 +60,7 @@ export default function DashboardTabs() {
         <DashboardOverviewCards />
       </CustomTabPanel>
       <CustomTabPanel value={value} index={1}>
-        Item Two
+        <RoleChangeRequest />
       </CustomTabPanel>
       <CustomTabPanel value={value} index={2}>
         Users

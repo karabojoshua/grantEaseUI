@@ -15,6 +15,16 @@ header h1 {
   font-weight: bold;
 }
 
+.card-title {
+  margin-top: 0.5rem;
+  font-weight: bold;
+  font-size: 2rem;
+}
+
+article {
+  margin: .25rem;
+}
+
 header nav {
   display: flex
 }
@@ -36,8 +46,52 @@ main .banner-area h2 {
   font-size: 2rem;
 }
 
-p {
+p, h3 {
   margin: 0;
+}
+
+.card.graph-card {
+  padding: 2rem 0 !important;
+  width: 50%;
+}
+
+.card.graph-card h3, .card.graph-card small, .card.graph-card p{
+  padding: 0 2rem;
+} 
+
+.stacked-cards > :first-child{
+  border-top-left-radius: 2rem;
+  border-top-right-radius: 2rem;
+}
+
+.stacked-cards > :last-child {
+  border-bottom-left-radius: 2rem;
+  border-bottom-right-radius: 2rem;
+}
+
+.stacked-cards {
+  border-radius: 2rem;
+}
+
+.stacked-cards h3, .card-group h3{
+ font-weight: inherit;
+ font-size: 1rem;
+ color: #555;
+}
+
+.stacked-cards big, big {
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+.stacked-cards section {
+  padding: 2rem;
+  transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+.stacked-cards section:hover {
+  background-color: #fff;
+  box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.1); 
 }
 
 .banner-area {
@@ -45,11 +99,27 @@ p {
   margin-left: 0;
 }
 
+.card .icon-area{
+  padding: 0.4rem;
+  border-radius: 2rem;
+  width: 2rem;
+  height: 2rem;
+  text-align: center;
+  color: #fffcf1;
+  margin-bottom: 1rem;
+  line-height: 2.8rem;
+}
+
 .card {
   padding: 2rem;
   background: #fff;
   border : #ffe998 1px solid;
   border-radius: 2rem;
+}
+
+.card-big-text {
+  font-size: 1.3rem;
+  margin-bottom: 1rem;
 }
 
 .card-row {
