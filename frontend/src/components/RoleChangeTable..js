@@ -18,13 +18,14 @@ import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Switch from '@mui/material/Switch';
-import DeleteIcon from '@mui/icons-material/Delete';
+import Stack from '@mui/material/Stack';
+import Button from '@mui/material/Button';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import { visuallyHidden } from '@mui/utils';
 
-function createData(userId, username, company, role, action) {
+function createData(id, username, company, role, action) {
     return {
-      userId,
+      id,
       username,
       company,
       role,
@@ -89,7 +90,7 @@ function stableSort(array, comparator) {
 }
 const headCells = [
     {
-      id: 'userId',
+      id: 'id',
       numeric: true,
       disablePadding: false,
       label: 'User ID',
@@ -132,7 +133,7 @@ function EnhancedTableHead(props) {
             checked={rowCount > 0 && numSelected === rowCount}
             onChange={onSelectAllClick}
             inputProps={{
-              'aria-label': 'select all desserts',
+              'aria-label': 'select all users',
             }}
           />
         </TableCell>
@@ -206,11 +207,17 @@ function EnhancedTableToolbar(props) {
       )}
 
       {numSelected > 0 ? (
-        <Tooltip title="Delete">
-          <IconButton>
-            <DeleteIcon />
-          </IconButton>
-        </Tooltip>
+        <Stack direction="row" spacing={2}>
+          {/* <Button color="secondary">Secondary</Button> */}
+          <Button variant="contained" color="success" 
+          // onClick={(event) => handleClick(event, row.id)}
+          >
+            Approve
+          </Button>
+          <Button variant="outlined" color="error">
+            Reject
+          </Button>
+        </Stack>
       ) : (
         <Tooltip title="Filter list">
           <IconButton>
@@ -267,6 +274,7 @@ export default function EnhancedTable() {
     }
     setSelected(newSelected);
   };
+  
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -346,7 +354,7 @@ export default function EnhancedTable() {
                       padding="none"
                       align='right'
                     >
-                      {row.userId}
+                      {row.id}
                     </TableCell>
                     <TableCell align="left">{row.username}</TableCell>
                     <TableCell align="left">{row.company}</TableCell>
