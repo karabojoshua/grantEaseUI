@@ -22,22 +22,28 @@ import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import { visuallyHidden } from '@mui/utils';
-
+import { descendingComparator, getComparator, stableSort } from '../functions/EnahancedTableFunctions';
 
 ////////////////////////////////////////////////////////////////////////////
-/////////////////////////// FETCH FUNDING REQUESTS /////////////////////////
+/////////////////////////// FETCH USERS ///////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////
 
-function createData(id, username, company) {
+function createData(id, userId, role, banned) {
+    let status = "";
+    if(banned === 0){
+        status = 'Active'
+    }else{
+        status = 'Banned'
+    }
   return {
     id,
-    username,
-    company,
+    userId,
+    role,
+    status
   };
 }
 
-const rows = [
-  createData(1, 'JohnDoe', 'ABC Corp')
+const myrows = [
   // Add more sample data as needed
 ];
 
@@ -46,25 +52,26 @@ function updateRowsWithApiData(rows, apiData) {
   // Map through each item in apiData
   apiData.forEach(apiItem => {
     // Extract relevant data from apiItem
-    const { req_userid, names, company_name } = apiItem;
+    const { id, userId, role, banned} = apiItem;
     // Check if a row with the same id already exists in rows
-    const existingRow = rows.find(row => row.id === req_userid);
+    const existingRow = rows.find(row => row.id === id);
     // If a matching row is found, update it with the new data
     if (existingRow) {
-      existingRow.username = names;
-      existingRow.company = company_name;
+      existingRow.userId = userId;
+      existingRow.role = role;
+      existingRow.banned = banned;
     }
     // If no matching row is found, create a new row with the API data and push it to rows
     else {
-      rows.push(createData(req_userid, names, company_name));
+      rows.push(createData(id, userId, role, banned));
     }
   });
 }
 // Call the function to update rows with API data
 
-async function getFundManagerRequests(){
+async function getUsers(){
   try {
-    const response = await fetch('http://localhost:5000/fund_manager_requests');
+    const response = await fetch('http://localhost:5000/users');
     
     if (!response.ok) {
       throw new Error('Failed to fetch data');
@@ -80,69 +87,104 @@ async function getFundManagerRequests(){
   }
 }
 
-async function fetchFunderRequests() {
+async function fetchUsers() {
   try {
-    const data = await getFundManagerRequests();
+    const data = await getUsers();
     // Do something with the fetched data
-    updateRowsWithApiData(rows, data);
+    updateRowsWithApiData(myrows, data);
   } catch (error) {
     console.error('Error fetching data:', error.message);
     // Optionally handle the error here
   }
 }
-fetchFunderRequests();
+fetchUsers();
 ////////////////////////////////////////////////////////////////////////////
-////////////////////// END FETCH FUNDING REQUESTS /////////////////////////
+/////////////////////////////// END FETCH USERS ////////////////////////////
 ////////////////////////////////////////////////////////////////////////////
+ 
 
-function descendingComparator(a, b, orderBy) {
-  if (b[orderBy] < a[orderBy]) {
-    return -1;
-  }
-  if (b[orderBy] > a[orderBy]) {
-    return 1;
-  }
-  return 0;
-}
-function getComparator(order, orderBy) {
-  return order === 'desc'
-    ? (a, b) => descendingComparator(a, b, orderBy)
-    : (a, b) => -descendingComparator(a, b, orderBy);
-}
 
-// Since 2020 all major browsers ensure sort stability with Array.prototype.sort().
-// stableSort() brings sort stability to non-modern browsers (notably IE11). If you
-// only support modern browsers you can replace stableSort(exampleArray, exampleComparator)
-// with exampleArray.slice().sort(exampleComparator)
-function stableSort(array, comparator) {
-  const stabilizedThis = array.map((el, index) => [el, index]);
-  stabilizedThis.sort((a, b) => {
-    const order = comparator(a[0], b[0]);
-    if (order !== 0) {
-      return order;
-    }
-    return a[1] - b[1];
-  });
-  return stabilizedThis.map((el) => el[0]);
-}
+///////////////////////TABLE HEADERS INCL TABLE HEADING//////////////////////
+function EnhancedTableToolbar(props) {
+    const { numSelected } = props;
+  
+    return (
+      <Toolbar
+        sx={{
+          pl: { sm: 2 },
+          pr: { xs: 1, sm: 1 },
+          ...(numSelected > 0 && {
+            bgcolor: (theme) =>
+              alpha(theme.palette.primary.main, theme.palette.action.activatedOpacity),
+          }),
+        }}
+      >
+        {numSelected > 0 ? (
+          <Typography
+            sx={{ flex: '1 1 100%' }}
+            color="inherit"
+            variant="subtitle1"
+            component="div"
+          >
+            {numSelected} selected
+          </Typography>
+        ) : (
+          <Typography
+            sx={{ flex: '1 1 100%' }}
+            variant="h6"
+            id="tableTitle"
+            component="h2"
+          >
+            Users
+          </Typography>
+        )}
+  
+        {numSelected > 0 ? (
+          <Stack direction="row" spacing={2}>
+            {/* <Button color="secondary">Secondary</Button> */}
+            <Button variant="contained" color="success" 
+                // onClick={handleClick(row.id)}
+            >
+              Activate
+            </Button>
+            <Button variant="outlined" color="error">
+              Ban
+            </Button>
+          </Stack>
+        ) : (
+          <Tooltip title="Filter list">
+            <IconButton>
+              <FilterListIcon />
+            </IconButton>
+          </Tooltip>
+        )}
+      </Toolbar>
+    );
+  }
+////////////////////////////TABLE HEAD CELLS///////////////////////////////////
 const headCells = [
     {
       id: 'id',
       numeric: true,
       disablePadding: false,
+      label: 'Account ID',
+    },
+    {
+      id: 'userId',
+      numeric: false,
+      disablePadding: false,
       label: 'User ID',
     },
     {
-      id: 'username',
+      id: 'role',
       numeric: false,
       disablePadding: false,
-      label: 'User name',
-    },
-    {
-      id: 'company',
+      label: 'Role',
+    },{
+      id: 'status',
       numeric: false,
       disablePadding: false,
-      label: 'Company',
+      label: 'status',
     },
     {
       id: 'action',
@@ -151,15 +193,12 @@ const headCells = [
       label: 'action',
     },
   ];  
-
-
 function EnhancedTableHead(props) {
   const { onSelectAllClick, order, orderBy, numSelected, rowCount, onRequestSort } =
     props;
   const createSortHandler = (property) => (event) => {
     onRequestSort(event, property);
   };
-
   return (
     <TableHead>
       <TableRow>
@@ -199,84 +238,63 @@ function EnhancedTableHead(props) {
     </TableHead>
   );
 }
-
+/////////////////////////SOME MORE TABLE STUFF///////////////////////////////
 EnhancedTableHead.propTypes = {
-  numSelected: PropTypes.number.isRequired,
-  onRequestSort: PropTypes.func.isRequired,
-  onSelectAllClick: PropTypes.func.isRequired,
-  order: PropTypes.oneOf(['asc', 'desc']).isRequired,
-  orderBy: PropTypes.string.isRequired,
-  rowCount: PropTypes.number.isRequired,
+    numSelected: PropTypes.number.isRequired,
+    onRequestSort: PropTypes.func.isRequired,
+    onSelectAllClick: PropTypes.func.isRequired,
+    order: PropTypes.oneOf(['asc', 'desc']).isRequired,
+    orderBy: PropTypes.string.isRequired,
+    rowCount: PropTypes.number.isRequired,
 };
-
-function EnhancedTableToolbar(props) {
-  const { numSelected } = props;
-
-  return (
-    <Toolbar
-      sx={{
-        pl: { sm: 2 },
-        pr: { xs: 1, sm: 1 },
-        ...(numSelected > 0 && {
-          bgcolor: (theme) =>
-            alpha(theme.palette.primary.main, theme.palette.action.activatedOpacity),
-        }),
-      }}
-    >
-      {numSelected > 0 ? (
-        <Typography
-          sx={{ flex: '1 1 100%' }}
-          color="inherit"
-          variant="subtitle1"
-          component="div"
-        >
-          {numSelected} selected
-        </Typography>
-      ) : (
-        <Typography
-          sx={{ flex: '1 1 100%' }}
-          variant="h6"
-          id="tableTitle"
-          component="div"
-        >
-          Request to be a Funding Manager
-        </Typography>
-      )}
-
-      {numSelected > 0 ? (
-        <Stack direction="row" spacing={2}>
-          {/* <Button color="secondary">Secondary</Button> */}
-          <Button variant="contained" color="success" 
-          // onClick={(event) => handleClick(event, row.id)}
-          >
-            Approve
-          </Button>
-          <Button variant="outlined" color="error">
-            Reject
-          </Button>
-        </Stack>
-      ) : (
-        <Tooltip title="Filter list">
-          <IconButton>
-            <FilterListIcon />
-          </IconButton>
-        </Tooltip>
-      )}
-    </Toolbar>
-  );
-}
-
 EnhancedTableToolbar.propTypes = {
-  numSelected: PropTypes.number.isRequired,
+    numSelected: PropTypes.number.isRequired,
 };
 
-export default function EnhancedTable() {
+////////////////////////////////////////////////////////////////////////////
+//////////////////////REQUEST TO BAN SELECTED USERS/////////////////////////
+////////////////////////////////////////////////////////////////////////////
+const toggleBanOnUser = (id, banOrActivate) => { 
+    ///banOrActivate E {0,1} where 0 is acivate & 1 is ban
+    fetch('http://localhost:5000/toggleBanOnUser', {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            id: id,
+            toggleBan: banOrActivate
+        })
+    }).then(response => {
+        if (!response.ok) {
+            throw new Error('Error updating ban');
+        }
+        return response.text();
+    })
+    .then(data => {
+        console.log(data);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+    myrows.splice(0, myrows.length)
+    fetchUsers();
+};
+
+
+////////////////////////////////////////////////////////////////////////////
+//////////////////////////// BEGIN USERS EXPORT ////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+
+
+export default function UsersTable() {
   const [order, setOrder] = React.useState('asc');
   const [orderBy, setOrderBy] = React.useState('calories');
   const [selected, setSelected] = React.useState([]);
   const [page, setPage] = React.useState(0);
   const [dense, setDense] = React.useState(false);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
+   let rows = myrows;
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc';
@@ -294,22 +312,25 @@ export default function EnhancedTable() {
   };
 
   const handleClick = (event, id) => {
-    const selectedIndex = selected.indexOf(id);
-    let newSelected = [];
+    if(event.target.type === "checkbox"){
+      const selectedIndex = selected.indexOf(id);
+      let newSelected = [];
 
-    if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, id);
-    } else if (selectedIndex === 0) {
-      newSelected = newSelected.concat(selected.slice(1));
-    } else if (selectedIndex === selected.length - 1) {
-      newSelected = newSelected.concat(selected.slice(0, -1));
-    } else if (selectedIndex > 0) {
-      newSelected = newSelected.concat(
-        selected.slice(0, selectedIndex),
-        selected.slice(selectedIndex + 1),
-      );
+      if (selectedIndex === -1) {
+        newSelected = newSelected.concat(selected, id);
+      } else if (selectedIndex === 0) {
+        newSelected = newSelected.concat(selected.slice(1));
+      } else if (selectedIndex === selected.length - 1) {
+        newSelected = newSelected.concat(selected.slice(0, -1));
+      } else if (selectedIndex > 0) {
+        newSelected = newSelected.concat(
+          selected.slice(0, selectedIndex),
+          selected.slice(selectedIndex + 1),
+        );
+      }
+      setSelected(newSelected);
+      console.log(newSelected);
     }
-    setSelected(newSelected);
   };
   
 
@@ -393,12 +414,16 @@ export default function EnhancedTable() {
                     >
                       {row.id}
                     </TableCell>
-                    <TableCell align="left">{row.username}</TableCell>
-                    <TableCell align="left">{row.company}</TableCell>
+                    <TableCell align="left">{row.userId}</TableCell>
+                    <TableCell align="left">{row.role}</TableCell>
+                    <TableCell className={row.status} align="left">{row.status} </TableCell>
                     <TableCell>
-                      <Button disableElevation variant="contained" color="success">Approve</Button> :
-                      <Button variant="outlined" color="error">Reject</Button>
-                    </TableCell>                    
+                    {
+                      row.status === "Banned" ? 
+                      <Button variant="contained" color="success" onClick={() => toggleBanOnUser(row.id, 0)}>Activate</Button> :
+                      <Button variant="outlined" color="error" onClick={() => toggleBanOnUser(row.id, 1)}>Ban</Button>
+                    }                    
+                    </TableCell>
                   </TableRow>
                 );
               })}

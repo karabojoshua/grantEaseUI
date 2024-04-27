@@ -14,9 +14,9 @@ export default function DashboardOverviewCards() {
         <article className="card-area">
             <section className="card-row">
                 <article className="card graph-card">
-                    <h3>Site Activity</h3>
+                    <h3>Total Available Funding</h3>
                     <small>Jan 21/2024 - Now</small>
-                    <p className="card-title">364 Visits per day</p>
+                    <p className="card-title">4 426</p>
                     <section className="graph-area">
                         <BasicLineChart />
                     </section>
@@ -27,22 +27,21 @@ export default function DashboardOverviewCards() {
                             <section className='icon-area' style={{backgroundColor: theme.palette.primary.main}}>
                                 <i> <PriceChangeIcon/> </i>
                                 </section>
-                            <h3>Total Active Fund Managers</h3>
-                            <big>75</big>
+                            <h3>Available Funding</h3>
+                            <big>R356k</big>
                         </article>
                         <article className="card">
                             <section className='icon-area' style={{backgroundColor: theme.palette.primary.main}}>
                                 <i><CurrencyExchangeIcon /></i>
                             </section>
 
-                            <h3>Total Active Applicants</h3>
-                            <big>1 425</big>
+                            <h3>Funded</h3>
+                            <big>R756k</big>
                         </article>
                     </section>
-                    <article className="card" style={{height: '11rem'}}>
+                    <article className="card">
                         <h3>Active Admins</h3>
                         <p className='card-big-text'>Platform Admins</p>
-                        <big>15</big>
                         <AvatarGroup total={24} component={'section'} style={{justifyContent: 'center'}}>
                             <Avatar component={'i'}
                                 sx={{ bgcolor: theme.palette.primary.main }}
@@ -67,9 +66,9 @@ export default function DashboardOverviewCards() {
                         </AvatarGroup>
                     </article>
                 </article>
-                <article className="stacked-cards card-group" style={{backgroundColor: theme.palette.primary.main, borderColor: theme.palette.secondary.light}}>
+                <article className="stacked-cards card-group" style={{backgroundColor: theme.palette.secondary.light, borderColor: theme.palette.secondary.light}}>
                     <section>
-                        <h3>Total Active Users</h3>
+                        <h3>Today's Received Applications</h3>
                         <big>89</big>
                     </section>
                     <section style={{borderTop: '1px solid', borderBottom: '1px solid', borderColor: theme.palette.secondary.main}}>

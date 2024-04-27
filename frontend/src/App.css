@@ -134,11 +134,16 @@ p, h3 {
 
 .stacked-cards section {
   padding: 2rem;
+  padding-top: 2.8rem;
   transition: background-color 0.3s, box-shadow 0.3s;
 }
 
+.stacked-cards big, .stacked-cards h3 {
+  color: #fff !important;
+}
+
 .stacked-cards section:hover {
-  background-color: #fff;
+  background-color: #e7e7e745;
   box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.1); 
 }
 
@@ -168,4 +173,14 @@ p, h3 {
 
 .card-row {
   display: flex;
+}
+
+.Banned {
+  color: rgb(230, 34, 0) !important;   
+  font-weight: bold !important;
+}
+
+.Active {
+  color: green !important;
+  font-weight: bold !important;
 }
