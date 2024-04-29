@@ -23,76 +23,6 @@ import Button from '@mui/material/Button';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import { visuallyHidden } from '@mui/utils';
 
-
-////////////////////////////////////////////////////////////////////////////
-/////////////////////////// FETCH FUNDING REQUESTS /////////////////////////
-////////////////////////////////////////////////////////////////////////////
-
-function createData(id, username, company) {
-  return {
-    id,
-    username,
-    company,
-  };
-}
-
-const rows = [
-  createData(1, 'JohnDoe', 'ABC Corp')
-  // Add more sample data as needed
-];
-
-
-function updateRowsWithApiData(rows, apiData) {
-  // Map through each item in apiData
-  apiData.forEach(apiItem => {
-    // Extract relevant data from apiItem
-    const { req_userid, names, company_name } = apiItem;
-    // Check if a row with the same id already exists in rows
-    const existingRow = rows.find(row => row.id === req_userid);
-    // If a matching row is found, update it with the new data
-    if (existingRow) {
-      existingRow.username = names;
-      existingRow.company = company_name;
-    }
-    // If no matching row is found, create a new row with the API data and push it to rows
-    else {
-      rows.push(createData(req_userid, names, company_name));
-    }
-  });
-}
-// Call the function to update rows with API data
-
-async function getFundManagerRequests(){
-  try {
-    const response = await fetch('http://localhost:5000/fund_manager_requests');
-    
-    if (!response.ok) {
-      throw new Error('Failed to fetch data');
-    }
-    
-    const data = await response.json();
-    // console.log(data);
-    return data;
-  } catch (error) {
-    console.error('Error fetching data:', error.message);
-    // Optionally handle the error here
-    return null;
-  }
-}
-
-async function fetchFunderRequests() {
-  try {
-    const data = await getFundManagerRequests();
-    // Do something with the fetched data
-    updateRowsWithApiData(rows, data);
-  } catch (error) {
-    console.error('Error fetching data:', error.message);
-    // Optionally handle the error here
-  }
-}
-fetchFunderRequests();
-////////////////////////////////////////////////////////////////////////////
-////////////////////// END FETCH FUNDING REQUESTS /////////////////////////
 ////////////////////////////////////////////////////////////////////////////
 
 function descendingComparator(a, b, orderBy) {
@@ -151,8 +81,6 @@ const headCells = [
       label: 'action',
     },
   ];  
-
-
 function EnhancedTableHead(props) {
   const { onSelectAllClick, order, orderBy, numSelected, rowCount, onRequestSort } =
     props;
@@ -277,6 +205,72 @@ export default function EnhancedTable() {
   const [page, setPage] = React.useState(0);
   const [dense, setDense] = React.useState(false);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
+  const [rows, setMyRows] = React.useState([]);
+  //const [forceUpdate, setForceUpdate] = React.useState(false);
+
+  /////////////////////////// FETCH FUNDING REQUESTS /////////////////////////
+  const createData = React.useCallback((id, username, company) => {
+    return {
+      id,
+      username,
+      company,
+    };
+  }, []);
+  const myrows = React.useMemo(() => {
+    return [];
+  }, []);
+  const updateRowsWithApiData = React.useCallback((rows, apiData) => {
+    // Map through each item in apiData
+    apiData.forEach(apiItem => {
+      // Extract relevant data from apiItem
+      const { req_userid, names, company_name } = apiItem;
+      // Check if a row with the same id already exists in rows
+      const existingRow = rows.find(row => row.id === req_userid);
+      // If a matching row is found, update it with the new data
+      if (existingRow) {
+        existingRow.username = names;
+        existingRow.company = company_name;
+      }
+      // If no matching row is found, create a new row with the API data and push it to rows
+      else {
+        rows.push(createData(req_userid, names, company_name));
+      }
+    });
+    setMyRows(rows);
+  }, [createData]);
+  const getFundManagerRequests = React.useCallback(async () => {
+    try {
+      const response = await fetch('http://localhost:5000/fund_manager_requests');
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch data');
+      }
+      
+      const data = await response.json();
+      // console.log(data);
+      return data;
+    } catch (error) {
+      console.error('Error fetching data:', error.message);
+      // Optionally handle the error here
+      return null;
+    }
+  }, []);
+  const fetchFunderRequests = React.useCallback(async () => {
+    try {
+      const data = await getFundManagerRequests();
+      // Do something with the fetched data
+      myrows.splice(0, myrows.length);
+      updateRowsWithApiData(myrows, data);
+    } catch (error) {
+      console.error('Error fetching data:', error.message);
+      // Optionally handle the error here
+    }
+  }, [myrows, getFundManagerRequests, updateRowsWithApiData]);
+  React.useEffect(() => {
+    fetchFunderRequests(); // Fetch initial user data when component mounts
+  }, [fetchFunderRequests]);
+  ////////////////////// END FETCH FUNDING REQUESTS /////////////////////////
+
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc';
@@ -338,7 +332,7 @@ export default function EnhancedTable() {
         page * rowsPerPage,
         page * rowsPerPage + rowsPerPage,
       ),
-    [order, orderBy, page, rowsPerPage],
+    [rows, order, orderBy, page, rowsPerPage],
   );
 
   return (

@@ -108,11 +108,13 @@ p, h3 {
 } 
 
 .stacked-cards > :first-child{
+  background: #00000000;
   border-top-left-radius: 2rem;
   border-top-right-radius: 2rem;
 }
 
 .stacked-cards > :last-child {
+  background: #000000ab;
   border-bottom-left-radius: 2rem;
   border-bottom-right-radius: 2rem;
 }
@@ -133,6 +135,7 @@ p, h3 {
 }
 
 .stacked-cards section {
+  background: #0000004f;
   padding: 2rem;
   padding-top: 2.8rem;
   transition: background-color 0.3s, box-shadow 0.3s;

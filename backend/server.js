@@ -68,31 +68,24 @@ app.put('/toggleBanOnUser', (req, res) => {
     
 });
 
-app.put('/toggleBanOnManyUsers', (req, res) => {
-    const accountsToToggleBan = req.body;
-    console.log(accountsToToggleBan);
-    let query = 'UPDATE `user` SET `banned` = 1 ';
-    let placeholders = '';
-    let ids = [];
-
-    accountsToToggleBan.forEach( (target, index) => {
-        query += 'WHEN id = ?';
-        placeholders += '?';
-        ids.push(target);
-        if (index !== accountsToToggleBan.length - 1) {
-            placeholders += ', ';
-        }
-    });
-    query += '';
-    connection.query(query, [...ids], (err, result) => {
-        if(err) {
-            console.error('Error updating fields:', err);
-            res.status(500).send('Error updating fields');
-        }else {
-            console.log('Fields updated successfully');
-            res.send('Fields updated successfully');
-        }
-    });
+app.put('/approveFundManager', (req, res) => {
+    const { id } = req.body;
+    if (req.body !== undefined){
+        const query = "UPDATE `user` SET `role` = 'fund_manager' WHERE `user`.`id` = ?";
+        connection.query(query, [id], (err, result) => {
+            if (err) {
+                console.error('Error updating field: role', err);
+                res.status(500).send('Error updating field');
+            }else {
+                console.log('Account id: '+ id +' upgraded to Fund Manager successfully');
+                res.send('Field updated successfully');
+            }
+        });
+    } else {
+        console.log("req.body is undefined");
+        res.status(500).send('Error updating field, No ID was provided');
+    }
+    
 });
 
 const port = 5000;

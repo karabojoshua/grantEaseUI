@@ -22,87 +22,7 @@ import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import { visuallyHidden } from '@mui/utils';
-import { descendingComparator, getComparator, stableSort } from '../functions/EnahancedTableFunctions';
-
-////////////////////////////////////////////////////////////////////////////
-/////////////////////////// FETCH USERS ///////////////////////////////////
-////////////////////////////////////////////////////////////////////////////
-
-function createData(id, userId, role, banned) {
-    let status = "";
-    if(banned === 0){
-        status = 'Active'
-    }else{
-        status = 'Banned'
-    }
-  return {
-    id,
-    userId,
-    role,
-    status
-  };
-}
-
-const myrows = [
-  // Add more sample data as needed
-];
-
-
-function updateRowsWithApiData(rows, apiData) {
-  // Map through each item in apiData
-  apiData.forEach(apiItem => {
-    // Extract relevant data from apiItem
-    const { id, userId, role, banned} = apiItem;
-    // Check if a row with the same id already exists in rows
-    const existingRow = rows.find(row => row.id === id);
-    // If a matching row is found, update it with the new data
-    if (existingRow) {
-      existingRow.userId = userId;
-      existingRow.role = role;
-      existingRow.banned = banned;
-    }
-    // If no matching row is found, create a new row with the API data and push it to rows
-    else {
-      rows.push(createData(id, userId, role, banned));
-    }
-  });
-}
-// Call the function to update rows with API data
-
-async function getUsers(){
-  try {
-    const response = await fetch('http://localhost:5000/users');
-    
-    if (!response.ok) {
-      throw new Error('Failed to fetch data');
-    }
-    
-    const data = await response.json();
-    // console.log(data);
-    return data;
-  } catch (error) {
-    console.error('Error fetching data:', error.message);
-    // Optionally handle the error here
-    return null;
-  }
-}
-
-async function fetchUsers() {
-  try {
-    const data = await getUsers();
-    // Do something with the fetched data
-    updateRowsWithApiData(myrows, data);
-  } catch (error) {
-    console.error('Error fetching data:', error.message);
-    // Optionally handle the error here
-  }
-}
-fetchUsers();
-////////////////////////////////////////////////////////////////////////////
-/////////////////////////////// END FETCH USERS ////////////////////////////
-////////////////////////////////////////////////////////////////////////////
- 
-
+import { getComparator, stableSort } from '../functions/EnahancedTableFunctions';
 
 ///////////////////////TABLE HEADERS INCL TABLE HEADING//////////////////////
 function EnhancedTableToolbar(props) {
@@ -148,7 +68,7 @@ function EnhancedTableToolbar(props) {
               Activate
             </Button>
             <Button variant="outlined" color="error">
-              Ban
+              Ban 
             </Button>
           </Stack>
         ) : (
@@ -252,9 +172,94 @@ EnhancedTableToolbar.propTypes = {
 };
 
 ////////////////////////////////////////////////////////////////////////////
-//////////////////////REQUEST TO BAN SELECTED USERS/////////////////////////
+//////////////////////////// BEGIN USERS EXPORT ////////////////////////////
 ////////////////////////////////////////////////////////////////////////////
-const toggleBanOnUser = (id, banOrActivate) => { 
+
+export default function UsersTable() {
+  const [order, setOrder] = React.useState('asc');
+  const [orderBy, setOrderBy] = React.useState('calories');
+  const [selected, setSelected] = React.useState([]);
+  const [page, setPage] = React.useState(0);
+  const [dense, setDense] = React.useState(false);
+  const [rowsPerPage, setRowsPerPage] = React.useState(5);
+  const [rows, setMyRows] = React.useState([]);
+  const [forceUpdate, setForceUpdate] = React.useState(false); // State variable to force re-render
+
+  /////////////////////////// FETCH USERS ///////////////////////////////////
+  const myrows = React.useMemo(() => {
+    return [];
+  }, []);
+  const createData = React.useCallback((id, userId, role, banned) => {
+    let status = "";
+    if(banned === 0){
+        status = 'Active'
+    }else{
+        status = 'Banned'
+    }
+    return {
+      id,
+      userId,
+      role,
+      status
+    };
+  }, []);
+  const updateRowsWithApiData = React.useCallback((rows, apiData) => {
+    // Map through each item in apiData
+    apiData.forEach(apiItem => {
+      // Extract relevant data from apiItem
+      const { id, userId, role, banned} = apiItem;
+      // Check if a row with the same id already exists in rows
+      const existingRow = rows.find(row => row.id === id);
+      // If a matching row is found, update it with the new data
+      if (existingRow) {
+        existingRow.userId = userId;
+        existingRow.role = role;
+        existingRow.banned = banned;
+      }
+      // If no matching row is found, create a new row with the API data and push it to rows
+      else {
+        rows.push(createData(id, userId, role, banned));
+      }
+    });
+    setMyRows(rows);
+  }, [createData]);
+  const getUsers = React.useCallback(async () => {
+    try {
+      const response = await fetch('http://localhost:5000/users');
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch data');
+      }
+      
+      const data = await response.json();
+      // console.log(data);
+      return data;
+    } catch (error) {
+      console.error('Error fetching data:', error.message);
+      // Optionally handle the error here
+      return null;
+    }
+  }, []);
+
+  const fetchUsers = React.useCallback(async () => {
+    try {
+      const data = await getUsers();
+      // Do something with the fetched data
+      myrows.splice(0, myrows.length);
+      updateRowsWithApiData(myrows, data);
+    } catch (error) {
+      console.error('Error fetching data:', error.message);
+      // Optionally handle the error here
+    }
+  }, [myrows, getUsers, updateRowsWithApiData]);
+  ////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////// END FETCH USERS ////////////////////////////
+  React.useEffect(() => {
+    fetchUsers(); // Fetch initial user data when component mounts
+  }, [fetchUsers]);
+  
+  /////////////////////REQUEST TO BAN SELECTED USERS/////////////////////////
+  const toggleBanOnUser = (id, banOrActivate) => { 
     ///banOrActivate E {0,1} where 0 is acivate & 1 is ban
     fetch('http://localhost:5000/toggleBanOnUser', {
         method: 'PUT',
@@ -273,29 +278,19 @@ const toggleBanOnUser = (id, banOrActivate) => {
     })
     .then(data => {
         console.log(data);
+        const updatedRows = rows.map(row => {
+          if (row.id === id) {
+            return { ...row, status: banOrActivate === 1 ? "Banned" : "Active" };
+          }
+          return row;
+        });
+        setMyRows(updatedRows); // Update myRows state
+        setForceUpdate(prev => !prev); // Force re-render
     })
     .catch(error => {
         console.error('Error:', error);
     });
-    myrows.splice(0, myrows.length)
-    fetchUsers();
-};
-
-
-////////////////////////////////////////////////////////////////////////////
-//////////////////////////// BEGIN USERS EXPORT ////////////////////////////
-////////////////////////////////////////////////////////////////////////////
-
-
-export default function UsersTable() {
-  const [order, setOrder] = React.useState('asc');
-  const [orderBy, setOrderBy] = React.useState('calories');
-  const [selected, setSelected] = React.useState([]);
-  const [page, setPage] = React.useState(0);
-  const [dense, setDense] = React.useState(false);
-  const [rowsPerPage, setRowsPerPage] = React.useState(5);
-   let rows = myrows;
-
+  };
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
@@ -329,7 +324,6 @@ export default function UsersTable() {
         );
       }
       setSelected(newSelected);
-      console.log(newSelected);
     }
   };
   
@@ -359,7 +353,7 @@ export default function UsersTable() {
         page * rowsPerPage,
         page * rowsPerPage + rowsPerPage,
       ),
-    [order, orderBy, page, rowsPerPage],
+    [rows, order, orderBy, page, rowsPerPage],
   );
 
   return (
@@ -399,6 +393,7 @@ export default function UsersTable() {
                     <TableCell padding="checkbox">
                       <Checkbox
                         color="primary"
+                        id={`user-checkbox-${row.id}`}
                         checked={isItemSelected}
                         inputProps={{
                           'aria-labelledby': labelId,

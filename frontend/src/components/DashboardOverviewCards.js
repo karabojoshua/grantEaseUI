@@ -72,7 +72,7 @@ export default function DashboardOverviewCards() {
                         <h3>Total Active Users</h3>
                         <big>89</big>
                     </section>
-                    <section style={{borderTop: '1px solid', borderBottom: '1px solid', borderColor: theme.palette.secondary.main}}>
+                    <section style={{borderTop: '4px solid', borderBottom: '4px solid', borderColor: '#fffcf1'}}>
                         <h3>Total Role Change Requests</h3>
                         <big>21</big>
                     </section>
